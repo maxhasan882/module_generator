@@ -1,0 +1,51 @@
+module: template
+file_name: mt_session.go
+models:
+  - name: ModelTestResult
+    fields:
+      - name: Id
+        type: string
+      - name: correct_answer
+        optional: true
+        type: int32
+      - name: incorrect_answer
+        type: int32
+        optional: true
+      - name: total_question
+        type: int32
+      - name: is_passed
+        type: bool
+      - name: marks_obtained
+        type: float64
+      - name: total_marks
+        type: float64
+      - name: time_spent
+        type: float64
+        optional: true
+interfaces:
+  - name: CqExamRepo
+    methods:
+      - name: "Get"
+        returns:
+          - "*domain.ModelTestResult"
+          - "error"
+        params:
+          - name: "ctx"
+            type: "context.Context"
+          - name: "id"
+            type: "string"
+      - name: "List"
+        returns:
+          - "[]*domain.ModelTestResult"
+          - "error"
+        params:
+          - name: "ctx"
+            type: "context.Context"
+          - name: "filter"
+            type: "sson.D"
+          - name: "skip"
+            type: "int64"
+          - name: "limit"
+            type: "int64"
+          - name: "sort"
+            type: "...interface{}"
