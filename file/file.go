@@ -2,6 +2,7 @@ package file
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 )
@@ -17,7 +18,12 @@ func ExtractFileNamesFromDirectory(directoryPath string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer dir.Close()
+	defer func(dir *os.File) {
+		err := dir.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}(dir)
 
 	// Read the list of files in the directory
 	fileInfos, err := dir.Readdir(-1)
@@ -48,7 +54,12 @@ func CreateOrUpdateModule(path, fileName, content string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open or create file for module: %w", err)
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}(file)
 
 	// Write the content
 	_, err = file.WriteString(content)
@@ -76,45 +87,6 @@ func createDirectory(dir string) error {
 	return nil
 }
 
-func CreateOrUpdateSchemaModule(filename, content, packageName string) error {
-	modulePath := "infrastructure/repository/internal/" + packageName + "/" + filename
-
-	if _, err := os.Stat(getPath(modulePath)); os.IsNotExist(err) {
-		// If the file does not exist, create the directory and the file
-		if err := os.MkdirAll(getPath("infrastructure/repository/internal/"+packageName), 0755); err != nil {
-			return err
-		}
-	}
-
-	file, err := os.OpenFile(getPath(modulePath), os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	// Get file information to check if the file is empty
-	fileInfo, err := file.Stat()
-	if err != nil {
-		return err
-	}
-
-	// If the file was just created or is empty, write the package declaration
-	if fileInfo.Size() == 0 {
-		_, err := file.WriteString(fmt.Sprintf("package %s", packageName))
-		if err != nil {
-			return err
-		}
-	}
-
-	// Write the content
-	_, err = file.WriteString(content)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func RemoveDirectory(directoryPath string) error {
 	err := os.RemoveAll(getPath(directoryPath))
 	if err != nil {
@@ -123,6 +95,7 @@ func RemoveDirectory(directoryPath string) error {
 	return nil
 }
 
+// getPath is a wrapper function to add any extra base path while necessary
 func getPath(path string) string {
 	return path
 }
