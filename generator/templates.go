@@ -37,4 +37,13 @@ type {{ .StructName }} struct {
 {{ end }}
 }
 `
+	interfaceHeaderTemplate = `
+package repository
+
+import (
+	"context"
+	{{ if .GotSson }}"{{.Module}}/pkg/sson"{{ end }}
+	"{{.Module}}/domain"
+)
+`
 )

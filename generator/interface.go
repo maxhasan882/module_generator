@@ -31,41 +31,39 @@ type Method struct {
 }
 
 func generateInterfaceFileImports(data *Data) {
-	_template := `
-		package repository
-		import (
-			"context"
-`
-	var gotSson bool
+	templateData := struct {
+		Module  string
+		GotSson bool
+	}{
+		Module: data.Module,
+	}
+
 	for _, item := range data.Interfaces {
 		for _, rt := range item.Methods {
 			for _, param := range rt.Params {
 				if param.Type == "sson.D" || param.Type == "sson.M" || param.Type == "sson.E" {
-					gotSson = true
+					templateData.GotSson = true
 				}
 			}
 		}
 	}
-	if gotSson {
-		_template += `"{{.Module}}/pkg/sson"
-`
-	}
-	_template += `"{{.Module}}/domain"
-		)
-`
-	tmpl, err := template.New("interface_header").Parse(_template)
-	if err != nil {
-		panic(err)
-	}
+
 	var buf bytes.Buffer
-	err = tmpl.Execute(&buf, data)
+	tmpl, err := template.New("interfaceHeader").Parse(interfaceHeaderTemplate)
 	if err != nil {
 		panic(err)
 	}
+
+	err = tmpl.Execute(&buf, templateData)
+	if err != nil {
+		panic(err)
+	}
+
 	formattedCode, err := formatGoCode(buf.String())
 	if err != nil {
 		panic(err)
 	}
+
 	err = file.CreateOrUpdateModule(filepath.Join([]string{"domain", "repository"}...), data.FileName, formattedCode)
 	if err != nil {
 		panic(err)
