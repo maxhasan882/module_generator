@@ -1,14 +1,14 @@
 package generator
 
-const templateText = `
+const (
+	templateText = `
 func (m *{{ .ModelName }}) Generate({{ range $index, $field := .Fields }}{{ if $index }}, {{ end }}{{ $field.Name | toCamelCase }} {{ if eq $field.Optional true }}*{{ end }} {{ $field.Type }}{{ end }}) *{{ .ModelName }} {
 	return &{{ .ModelName }}{
 		{{ range .Fields }}{{ .Name | snakeToPascal  }}: {{ .Name | toCamelCase }},
 		{{ end }}
 	}
 }`
-
-const getDataFunctionTemplate = `
+	getDataFunctionTemplate = `
 func (m *{{ .ModelName }}) GetData(d *domain.{{ .ModelName }}) *{{ .ModelName }} {
 	return &{{ .ModelName }}{
 		{{ range .Fields }}{{ if not (or (eq .Name "ID") (eq .Name "Id")) }}{{ .Name | snakeToPascal }}: d.{{ .Name | snakeToPascal }},
@@ -16,15 +16,13 @@ func (m *{{ .ModelName }}) GetData(d *domain.{{ .ModelName }}) *{{ .ModelName }}
 	}
 }
 `
-
-const domainStructTemplate = `
+	domainStructTemplate = `
 type {{ .StructName }} struct {
 	{{ range .Fields }}{{ if .Optional }}{{ .Name | snakeToPascal }} *{{ .Type }} ` + "`json:\"{{ .Name | toLower }},omitempty\"`" + `{{ else }}{{ .Name | snakeToPascal }} {{ .Type }} ` + "`json:\"{{ .Name | toLower }},omitempty\"`" + `{{ end }}
 	{{ end }}
 }
 `
-
-const schemaStructTemplate = `
+	schemaStructTemplate = `
 {{ if .GotID }}
 import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -39,3 +37,4 @@ type {{ .StructName }} struct {
 {{ end }}
 }
 `
+)
