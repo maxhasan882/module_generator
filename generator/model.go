@@ -63,7 +63,6 @@ func generateSchemaModels(data *Data) {
 		if err != nil {
 			panic(err)
 		}
-		//err = file.CreateOrUpdateSchemaModule(data.FileName, formattedCode, "schema")
 		err = file.CreateOrUpdateModule(filepath.Join([]string{"infrastructure", "repository", "schema"}...), data.FileName, formattedCode)
 		if err != nil {
 			panic(err)
