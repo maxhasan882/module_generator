@@ -1,6 +1,11 @@
 package generator
 
-import "strings"
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"strings"
+)
 
 func toLower(s string) string {
 	return strings.ToLower(s)
@@ -28,4 +33,14 @@ func snakeToPascal(snakeCase string) string {
 	pascalCase := strings.Join(words, "")
 
 	return pascalCase
+}
+
+func askForConfirmation(prompt string) bool {
+	fmt.Print(prompt + " (yes/no): ")
+
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	answer := strings.ToLower(scanner.Text())
+
+	return answer == "yes" || answer == "y"
 }

@@ -87,8 +87,8 @@ func createDirectory(dir string) error {
 	return nil
 }
 
-func RemoveDirectory(directoryPath string) error {
-	err := os.RemoveAll(getPath(directoryPath))
+func RemoveFile(directoryPath string) error {
+	err := os.Remove(getPath(directoryPath))
 	if err != nil {
 		return err
 	}
@@ -98,4 +98,9 @@ func RemoveDirectory(directoryPath string) error {
 // getPath is a wrapper function to add any extra base path while necessary
 func getPath(path string) string {
 	return path
+}
+
+func IsFileExists(filename string) bool {
+	_, err := os.Stat(filename)
+	return err == nil
 }
