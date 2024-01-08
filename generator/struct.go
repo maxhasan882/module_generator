@@ -15,7 +15,7 @@ func generateDomainStruct(structName string, fieldsInfo []*FieldInfo) (string, e
 	}
 
 	var buf bytes.Buffer
-	tmpl, err := template.New("generateFunc").Funcs(template.FuncMap{"toCamelCase": toCamelCase, "snakeToPascal": snakeToPascal, "toLower": toLower}).Parse(domainStructTemplate)
+	tmpl, err := template.New("domainStruct").Funcs(template.FuncMap{"toCamelCase": toCamelCase, "snakeToPascal": snakeToPascal, "toLower": toLower}).Parse(domainStructTemplate)
 	if err != nil {
 		return "", err
 	}
