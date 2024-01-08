@@ -2,6 +2,7 @@ package generator
 
 import (
 	"bytes"
+	"os"
 	"template/generator/stubs"
 	"text/template"
 )
@@ -22,8 +23,9 @@ func generateSchemasFunction(model *Model) (string, error) {
 }
 
 func generateDomainsFunction(model *Model) (string, error) {
+	fileData, err := os.ReadFile("generator/stubs/generate_func.stub")
 	var buf bytes.Buffer
-	tmpl, err := template.New("generateFunc").Funcs(template.FuncMap{"toCamelCase": toCamelCase, "snakeToPascal": snakeToPascal}).Parse(stubs.GenerateFunc)
+	tmpl, err := template.New("generateFunc").Funcs(template.FuncMap{"toCamelCase": toCamelCase, "snakeToPascal": snakeToPascal}).Parse(string(fileData))
 	if err != nil {
 		return "", err
 	}
