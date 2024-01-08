@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"path/filepath"
 	"template/file"
+	"template/generator/stubs"
 	"text/template"
 )
 
@@ -49,7 +50,7 @@ func generateInterfaceFileImports(data *Data) {
 	}
 
 	var buf bytes.Buffer
-	tmpl, err := template.New("interfaceHeader").Parse(interfaceHeaderTemplate)
+	tmpl, err := template.New("interfaceHeader").Parse(stubs.InterfaceHeaderTemplate)
 	if err != nil {
 		panic(err)
 	}

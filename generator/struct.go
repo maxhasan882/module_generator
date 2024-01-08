@@ -2,6 +2,7 @@ package generator
 
 import (
 	"bytes"
+	"template/generator/stubs"
 	"text/template"
 )
 
@@ -15,7 +16,7 @@ func generateDomainStruct(structName string, fieldsInfo []*FieldInfo) (string, e
 	}
 
 	var buf bytes.Buffer
-	tmpl, err := template.New("domainStruct").Funcs(template.FuncMap{"toCamelCase": toCamelCase, "snakeToPascal": snakeToPascal, "toLower": toLower}).Parse(domainStructTemplate)
+	tmpl, err := template.New("domainStruct").Funcs(template.FuncMap{"toCamelCase": toCamelCase, "snakeToPascal": snakeToPascal, "toLower": toLower}).Parse(stubs.DomainStructTemplate)
 	if err != nil {
 		return "", err
 	}
@@ -61,7 +62,7 @@ func generateSchemaStruct(moduleName, structName string, fieldsInfo []*FieldInfo
 	}
 
 	var buf bytes.Buffer
-	tmpl, err := template.New("schemaStruct").Funcs(template.FuncMap{"snakeToPascal": snakeToPascal, "toLower": toLower}).Parse(schemaStructTemplate)
+	tmpl, err := template.New("schemaStruct").Funcs(template.FuncMap{"snakeToPascal": snakeToPascal, "toLower": toLower}).Parse(stubs.SchemaStructTemplate)
 	if err != nil {
 		return "", err
 	}
