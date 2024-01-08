@@ -26,7 +26,7 @@ func generateDomainModels(data *Data) {
 		panic(err)
 	}
 	for _, model := range data.Models {
-		functionData, err := generateFunction(model)
+		functionData, err := generateDomainsFunction(model)
 		if err != nil {
 			panic(err)
 		}
@@ -51,7 +51,7 @@ func generateSchemaModels(data *Data) {
 		panic(err)
 	}
 	for _, model := range data.Models {
-		functionData, err := generateGetDataFunction(model)
+		functionData, err := generateSchemasFunction(model)
 		if err != nil {
 			panic(err)
 		}
