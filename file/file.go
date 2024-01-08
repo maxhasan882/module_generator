@@ -36,43 +36,6 @@ func ExtractFileNamesFromDirectory(directoryPath string) ([]string, error) {
 	return fileNames, nil
 }
 
-// CreateOrUpdateDomainModule creates or updates a Go module file in the specified package directory.
-func CreateOrUpdateDomainModule(filename, content, packageName string) error {
-	modulePath := filepath.Join(packageName, filename)
-
-	// Ensure the directory exists, create it if not
-	if err := os.MkdirAll(getPath(packageName), 0755); err != nil {
-		return fmt.Errorf("failed to create directory: %w", err)
-	}
-
-	filePath := getPath(modulePath)
-	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
-	if err != nil {
-		return fmt.Errorf("failed to open file: %w", err)
-	}
-	defer file.Close()
-
-	// Get file information to check if the file is empty
-	fileInfo, err := file.Stat()
-	if err != nil {
-		return fmt.Errorf("failed to get file information: %w", err)
-	}
-
-	// If the file was just created or is empty, write the package declaration
-	if fileInfo.Size() == 0 {
-		if _, err := file.WriteString(fmt.Sprintf("package %s\n\n", packageName)); err != nil {
-			return fmt.Errorf("failed to write package declaration: %w", err)
-		}
-	}
-
-	// Write the content
-	if _, err := file.WriteString(content); err != nil {
-		return fmt.Errorf("failed to write content: %w", err)
-	}
-
-	return nil
-}
-
 // CreateOrUpdateModule creates or updates a module.
 func CreateOrUpdateModule(path, fileName, content string) error {
 	// Create the directory if it doesn't exist
@@ -108,32 +71,6 @@ func createDirectory(dir string) error {
 	// The directory doesn't exist, so create it
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return fmt.Errorf("failed to create directory %s: %w", dir, err)
-	}
-
-	return nil
-}
-
-// CreateOrUpdateInterfaceModule creates or updates an interface module.
-func CreateOrUpdateInterfaceModule(filename, content, packageName string) error {
-	modulePath := "domain/" + packageName + "/" + filename
-	fullPath := getPath(modulePath)
-
-	// Create the directory if it doesn't exist
-	if err := createDirectory(getPath("domain/" + packageName + "/")); err != nil {
-		return fmt.Errorf("failed to create directory for interface module: %w", err)
-	}
-
-	// Open or create the file
-	file, err := os.OpenFile(fullPath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
-	if err != nil {
-		return fmt.Errorf("failed to open or create file for interface module: %w", err)
-	}
-	defer file.Close()
-
-	// Write the content
-	_, err = file.WriteString(content)
-	if err != nil {
-		return fmt.Errorf("failed to write content to interface module file: %w", err)
 	}
 
 	return nil

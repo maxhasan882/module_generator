@@ -15,7 +15,7 @@ func Run(data *Data) {
 		panic(err)
 	}
 
-	generateModels(data)
+	generateDomainModels(data)
 	generateInterface(data)
 	generateSchemaModels(data)
 }

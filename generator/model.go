@@ -20,7 +20,7 @@ type FieldInfo struct {
 	Optional bool   `yaml:"optional"`
 }
 
-func generateModels(data *Data) {
+func generateDomainModels(data *Data) {
 	err := file.CreateOrUpdateModule(filepath.Join([]string{"domain"}...), data.FileName, "package domain\n")
 	if err != nil {
 		panic(err)
@@ -46,6 +46,10 @@ func generateModels(data *Data) {
 }
 
 func generateSchemaModels(data *Data) {
+	err := file.CreateOrUpdateModule(filepath.Join([]string{"infrastructure", "repository", "schema"}...), data.FileName, "package schema")
+	if err != nil {
+		panic(err)
+	}
 	for _, model := range data.Models {
 		functionData, err := generateGetDataFunction(model)
 		if err != nil {
@@ -59,7 +63,8 @@ func generateSchemaModels(data *Data) {
 		if err != nil {
 			panic(err)
 		}
-		err = file.CreateOrUpdateSchemaModule(data.FileName, formattedCode, "schema")
+		//err = file.CreateOrUpdateSchemaModule(data.FileName, formattedCode, "schema")
+		err = file.CreateOrUpdateModule(filepath.Join([]string{"infrastructure", "repository", "schema"}...), data.FileName, formattedCode)
 		if err != nil {
 			panic(err)
 		}
