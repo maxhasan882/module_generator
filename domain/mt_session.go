@@ -11,9 +11,9 @@ type ModelTestResult struct {
 	TimeSpent       *float64 `json:"time_spent,omitempty"`
 }
 
-func (m *ModelTestResult) Generate(Id string, correctAnswer *int32, incorrectAnswer *int32, totalQuestion int32, isPassed bool, marksObtained float64, totalMarks float64, timeSpent *float64) *ModelTestResult {
+func (m *ModelTestResult) Generate(id string, correctAnswer *int32, incorrectAnswer *int32, totalQuestion int32, isPassed bool, marksObtained float64, totalMarks float64, timeSpent *float64) *ModelTestResult {
 	return &ModelTestResult{
-		Id:              Id,
+		Id:              id,
 		CorrectAnswer:   correctAnswer,
 		IncorrectAnswer: incorrectAnswer,
 		TotalQuestion:   totalQuestion,

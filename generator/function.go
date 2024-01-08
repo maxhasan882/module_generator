@@ -6,34 +6,13 @@ import (
 	"text/template"
 )
 
-const templateText = `
-{{- define "toCamelCase" -}}
-	{{ toCamelCase . }}
-	{{- end -}}
-
-{{- define "snakeToPascal" -}}
-	{{ snakeToPascal . }}
-	{{- end -}}
-
-func (m *{{ .ModelName }}) Generate({{ range $index, $field := .Fields }}{{ if $index }}, {{ end }}{{ $field.Name | toCamelCase }} {{ if eq $field.Optional true }}*{{ end }} {{ $field.Type }}{{ end }}) *{{ .ModelName }} {
-	return &{{ .ModelName }}{
-		{{ range .Fields }}{{ .Name | snakeToPascal  }}: {{ .Name | toCamelCase }},
-		{{ end }}
-	}
-}`
-
-const getDataFunctionTemplate = `
-func (m *{{ .ModelName }}) GetData(d *domain.{{ .ModelName }}) *{{ .ModelName }} {
-	return &{{ .ModelName }}{
-		{{ range .Fields }}{{ if not (or (eq .Name "ID") (eq .Name "Id")) }}{{ .Name | snakeToPascal }}: d.{{ .Name | snakeToPascal }},
-		{{ end }}{{ end }}
-	}
+func toLower(s string) string {
+	return strings.ToLower(s)
 }
-`
 
 func toCamelCase(s string) string {
 	parts := strings.Split(s, "_")
-	result := parts[0]
+	result := toLower(parts[0])
 	for _, part := range parts[1:] {
 		result += strings.Title(part)
 	}

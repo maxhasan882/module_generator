@@ -1,10 +1,10 @@
 package generator
 
 import (
-	"fmt"
+	"bytes"
 	"path/filepath"
-	"strings"
 	"template/file"
+	"text/template"
 )
 
 // Model represents a data model in the YAML configuration.
@@ -21,7 +21,7 @@ type FieldInfo struct {
 }
 
 func generateModels(data *Data) {
-	err := file.CreateOrUpdateModule(filepath.Join([]string{"domain"}...), data.FileName, "package domain")
+	err := file.CreateOrUpdateModule(filepath.Join([]string{"domain"}...), data.FileName, "package domain\n")
 	if err != nil {
 		panic(err)
 	}
@@ -30,7 +30,10 @@ func generateModels(data *Data) {
 		if err != nil {
 			panic(err)
 		}
-		generatedStruct := generateDomainStruct(model.ModelName, model.Fields)
+		generatedStruct, err := generateDomainStruct(model.ModelName, model.Fields)
+		if err != nil {
+			panic(err)
+		}
 		formattedCode, err := formatGoCode(generatedStruct + "\n" + functionData)
 		if err != nil {
 			panic(err)
@@ -48,7 +51,10 @@ func generateSchemaModels(data *Data) {
 		if err != nil {
 			panic(err)
 		}
-		generatedStruct := generateSchemaStruct(data.Module, model.ModelName, model.Fields)
+		generatedStruct, err := generateSchemaStruct(data.Module, model.ModelName, model.Fields)
+		if err != nil {
+			panic(err)
+		}
 		formattedCode, err := formatGoCode(generatedStruct + functionData)
 		if err != nil {
 			panic(err)
@@ -60,48 +66,71 @@ func generateSchemaModels(data *Data) {
 	}
 }
 
-func generateDomainStruct(structName string, fieldsInfo []*FieldInfo) string {
-	var structDefinition strings.Builder
-
-	structDefinition.WriteString(fmt.Sprintf("\n\ntype %s struct {\n", structName))
-
-	for _, fieldInfo := range fieldsInfo {
-		if fieldInfo.Optional {
-			structDefinition.WriteString(fmt.Sprintf("    %s *%s `json:\"%s,omitempty\"`\n", snakeToPascal(fieldInfo.Name), fieldInfo.Type, strings.ToLower(fieldInfo.Name)))
-		} else {
-			structDefinition.WriteString(fmt.Sprintf("    %s %s `json:\"%s,omitempty\"`\n", snakeToPascal(fieldInfo.Name), fieldInfo.Type, strings.ToLower(fieldInfo.Name)))
-		}
+func generateDomainStruct(structName string, fieldsInfo []*FieldInfo) (string, error) {
+	data := struct {
+		StructName string
+		Fields     []*FieldInfo
+	}{
+		StructName: structName,
+		Fields:     fieldsInfo,
 	}
 
-	structDefinition.WriteString("}")
+	var buf bytes.Buffer
+	tmpl, err := template.New("generateFunc").Funcs(template.FuncMap{"toCamelCase": toCamelCase, "snakeToPascal": snakeToPascal, "toLower": toLower}).Parse(domainStructTemplate)
+	if err != nil {
+		return "", err
+	}
 
-	return structDefinition.String()
+	err = tmpl.Execute(&buf, data)
+	if err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }
 
-func generateSchemaStruct(moduleName, structName string, fieldsInfo []*FieldInfo) string {
-	var structDefinition strings.Builder
-	var gotId bool
+func generateSchemaStruct(moduleName, structName string, fieldsInfo []*FieldInfo) (string, error) {
+	type FieldInfoTemplate struct {
+		Name     string
+		Type     string
+		Optional bool
+		JSONTag  string
+		IsID     bool
+	}
 
-	structDefinition.WriteString(fmt.Sprintf("\n\ntype %s struct {\n", structName))
+	data := struct {
+		ModuleName string
+		StructName string
+		Fields     []FieldInfoTemplate
+		GotID      bool
+	}{
+		ModuleName: moduleName,
+		StructName: structName,
+	}
 
 	for _, fieldInfo := range fieldsInfo {
-		if fieldInfo.Name == "Id" || fieldInfo.Name == "ID" {
-			structDefinition.WriteString("Id                primitive.ObjectID `json:\"id,omitempty\" bson:\"_id,omitempty\"`\n")
-			gotId = true
-			continue
+		fieldInfoTemplate := FieldInfoTemplate{
+			Name:     fieldInfo.Name,
+			Type:     fieldInfo.Type,
+			Optional: fieldInfo.Optional,
+			IsID:     fieldInfo.Name == "ID" || fieldInfo.Name == "Id",
 		}
-		if fieldInfo.Optional {
-			structDefinition.WriteString(fmt.Sprintf("    %s *%s `json:\"%s,omitempty\" bson:\"%s,omitempty\"`\n", snakeToPascal(fieldInfo.Name), fieldInfo.Type, strings.ToLower(fieldInfo.Name), strings.ToLower(fieldInfo.Name)))
-		} else {
-			structDefinition.WriteString(fmt.Sprintf("    %s %s `json:\"%s,omitempty\" bson:\"%s,omitempty\"`\n", snakeToPascal(fieldInfo.Name), fieldInfo.Type, strings.ToLower(fieldInfo.Name), strings.ToLower(fieldInfo.Name)))
+		if fieldInfoTemplate.IsID {
+			data.GotID = true
 		}
+		data.Fields = append(data.Fields, fieldInfoTemplate)
 	}
 
-	structDefinition.WriteString("}")
-	result := fmt.Sprintf("\n\n"+`import (`+"\n"+`"%s/domain"`+"\n", moduleName)
-	if gotId {
-		result += `"go.mongodb.org/mongo-driver/bson/primitive"` + "\n"
+	var buf bytes.Buffer
+	tmpl, err := template.New("schemaStruct").Funcs(template.FuncMap{"snakeToPascal": snakeToPascal, "toLower": toLower}).Parse(schemaStructTemplate)
+	if err != nil {
+		return "", err
 	}
-	result += ")\n"
-	return result + structDefinition.String()
+
+	err = tmpl.Execute(&buf, data)
+	if err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }
